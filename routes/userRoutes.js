@@ -17,55 +17,7 @@ let path = require("path");
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.CLIENT_ID);
 
-router.post("/google", async (req, res) => {
-  const { token } = req.body;
-  const ticket = await client.verifyIdToken({
-    idToken: token,
-    audience:
-      "374086012147-nprk3ceoj1dds52ipbksbcr4jdc4mjk8.apps.googleusercontent.com",
-  });
-  const { given_name, family_name, email } = ticket.getPayload();
-  const user = await User.findOne({ email });
-  if (user) {
-    let token = jwt.sign(
-      {
-        id: user._id,
-        firstName: user.firstName,
-        email: user.email,
-        role: user.role,
-      },
-      process.env.PRIVATE_KEY,
-      { expiresIn: "24h" }
-    );
-    return res.status(200).json({
-      accessToken: token,
-      user: user,
-    });
-  } else {
-    const user = new User({
-      firstName: given_name,
-      lastName: family_name,
-      email,
-      verified: true,
-      role: ROLES.STUDENT,
-    });
-    const newUser = await user.save();
-    let token = jwt.sign(
-      {
-        id: newUser._id,
-        firstName: newUser.firstName,
-        email: newUser.email,
-        role: newUser.role,
-      },
-      process.env.PRIVATE_KEY,
-      { expiresIn: "24h" }
-    );
-    return res.status(200).json({
-      accessToken: token,
-      user: newUser,
-    });
-  }
-});
+
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -362,6 +314,55 @@ router.post("/active", function (req, res, next) {
     );
   } catch (err) {
     return res.status(500).send(err);
+  }
+});
+router.post("/google", async (req, res) => {
+  const { token } = req.body;
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience:
+      "374086012147-nprk3ceoj1dds52ipbksbcr4jdc4mjk8.apps.googleusercontent.com",
+  });
+  const { given_name, family_name, email } = ticket.getPayload();
+  const user = await User.findOne({ email });
+  if (user) {
+    let token = jwt.sign(
+      {
+        id: user._id,
+        firstName: user.firstName,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.PRIVATE_KEY,
+      { expiresIn: "24h" }
+    );
+    return res.status(200).json({
+      accessToken: token,
+      user: user,
+    });
+  } else {
+    const user = new User({
+      firstName: given_name,
+      lastName: family_name,
+      email,
+      verified: true,
+      role: ROLES.STUDENT,
+    });
+    const newUser = await user.save();
+    let token = jwt.sign(
+      {
+        id: newUser._id,
+        firstName: newUser.firstName,
+        email: newUser.email,
+        role: newUser.role,
+      },
+      process.env.PRIVATE_KEY,
+      { expiresIn: "24h" }
+    );
+    return res.status(200).json({
+      accessToken: token,
+      user: newUser,
+    });
   }
 });
 
