@@ -318,6 +318,7 @@ router.post("/active", function (req, res, next) {
 });
 router.post("/google", async (req, res) => {
   const { token } = req.body;
+  if(token){
   const ticket = await client.verifyIdToken({
     idToken: token,
     audience:
@@ -362,8 +363,11 @@ router.post("/google", async (req, res) => {
     return res.status(200).json({
       accessToken: token,
       user: newUser,
-    });
+    });}
   }
+  res.status(400).json({
+    message: "error"
+  })
 });
 
 router.post("/resetpassword", function (req, res, next) {
